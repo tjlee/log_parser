@@ -1,62 +1,16 @@
-import codecs
-import matplotlib.pyplot as plt
-from ast import literal_eval
 import os
-import matplotlib.dates as mdates
-
-from dateutil.parser import parse
-import time
+import codecs
+import argparse
 from datetime import *
 
-#
-# '''
-# import fileinput
-#
-# parsed_info = []
-# for linenum, line in enumerate(fileinput.input()):
-#     if not line.startswith("#DEBUG"):
-#         continue # Skip line
-#
-#     msg = line.partition("MSG")[1] # Get everything after MSG
-#     words = msg.split() # Split on words
-#     info = {}
-#     for w in words:
-#         k, _, v = w.partition(":") # Split each word on first :
-#         info[k] = v
-#
-#     parsed_info.append(info)
-#
-#     if linenum % 10000 == 0: # Or maybe  if len(parsed_info) > 500:
-#         # Insert everything in parsed_info to database
-#         ...
-#         parsed_info = [] # Clear
-# '''
+import matplotlib.pyplot as plt
+import matplotlib.dates as m_dates
 
 
-class LogData:
-    def __init__(self, time_stamp, method_name, execution_time):
-        self.time_stamp = time_stamp
-        self.method_name = method_name
-        self.execution_time = execution_time
-
-
-# read file
 def get_file_contents(file_name):
     with codecs.open(file_name, mode='r', encoding='utf-8') as tmp_file:
         tmp_data = tmp_file.read()
     return tmp_data
-
-
-# save data
-def save_xml_to_file(xml_data, file_name):
-    with codecs.open(file_name, mode='w') as tmp_file:
-        tmp_file.write(xml_data)
-
-
-# 26.02 15:51:46,026 INFO  [ru.crystals.speedlog] SPEEDLOG> ThreadID:217 Time:0 FINISH: ru.crystals.transport.PGQManagerImpl.insertEvent
-# time_stamp => FINISH => method? TIME
-
-counter = 0
 
 
 def save_plot(path, ext='png', close=True):
@@ -70,93 +24,94 @@ def save_plot(path, ext='png', close=True):
 
     save_path = os.path.join(directory, filename)
 
-    plt.savefig(save_path)
+    plt.savefig(save_path, format=ext, papertype='b10')
 
     if close:
         plt.close()
 
 
 def parse_perf_data(data, data_types):
-    data_collection = {}
+    result_collection = {}
     for line in data.split('\n'):
         if "FINISH" not in line:
             continue
         else:
             # working with selected FINISH line
             for data_type in data_types:
+                # 26.02 15:51:46,026 INFO  [ru.crystals.speedlog] SPEEDLOG> ThreadID:217 Time:0 FINISH: ru.crystals.transport.PGQManagerImpl.insertEvent
                 if data_type in line:
                     chunks = line.split(' ')
 
-                    if data_type not in data_collection:
-                        data_collection[data_type] = []
+                    if data_type not in result_collection:
+                        result_collection[data_type] = []
 
+                    # getting log time
                     current_time = datetime.strptime(chunks[0] + " " + chunks[1], "%d.%m %H:%M:%S,%f")
+                    # getting number from Time:XXXXX
                     total_time = int(chunks[7][5:])
 
-                    data_collection[data_type].append((current_time, total_time))
+                    result_collection[data_type].append((current_time, total_time))
 
-                    #data_collection
-                    ##global counter
-                    #counter +=1
-                    # a.append(current_time)
-                    #b.append(total_time) # todo: need to convert to ticks
+    return result_collection
 
-    return data_collection
-
-
-import matplotlib.cbook as cbook
-
-
-def my_format_function(x, pos=None):
-    x = mdates.num2date(x)
-    if pos == 0:
-        fmt = '%D %H:%M:%S'
-    else:
-        fmt = '%H:%M:%S'
-    label = x.strftime(fmt)
-    label = label.rstrip("0")
-    label = label.rstrip(".")
-    return label
-
-
-from matplotlib.ticker import FuncFormatter
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-d", "--data", default="./data/",
+                        help="Absolute path to directory with log files(default: ./data/")
+    parser.add_argument("-e", "--ext", default="png",
+                        help="Saved plot extension(default=png). Available: png, svg, pdf")
+    parser.add_argument("-s", "--show", default=False, help="Show plot in runtime")
+    parser.add_argument("-t", "--types", nargs="+", type=str,
+                        default=["getGoodsCatalogWithTi", "importActionsWithTi", "importCashiersWithTi",
+                                 "getCardsCatalogWithTi",
+                                 "writeObjectsToFile", "insertEvent", "getNewProductsToCash", "processDocument"],
+                        help='''Data types to analyze(default:"getGoodsCatalogWithTi" "importActionsWithTi" "importCashiersWithTi" "getCardsCatalogWithTi" "writeObjectsToFile" "insertEvent" "getNewProductsToCash" "processDocument"
+                        To pass parameters use: -t "one" "two" "four"''')
 
-    data_types = ("getGoodsCatalogWithTi", "importActionsWithTi", "importCashiersWithTi", "getCardsCatalogWithTi",
-                  "writeObjectsToFile", "insertEvent", "getNewProductsToCash", "processDocument")
+    args = parser.parse_args()
+
+    data_types_set = args.types
+    data_folder = args.data
 
     result = {}
 
-    for data_type in data_types:
+    for data_type in data_types_set:
         result[data_type] = []
 
-    for data_file in os.listdir("./data"):
-        data_collection = parse_perf_data(get_file_contents("./data/" + data_file), data_types)
-        for data_type in data_types:
+    # reading data from all files in data_folder
+    for data_file in os.listdir(data_folder):
+        data_collection = parse_perf_data(get_file_contents(data_folder + data_file), data_types_set)
+        for data_type in data_types_set:
             if data_type in data_collection:
                 result[data_type].extend(data_collection[data_type])
 
-    #base_x.extend(x)
-    #base_y.extend(y)
-
-    #max_value = max(base_y)
-    #max_value_index = base_y.index(max_value)
-
-
     fig, ax = plt.subplots()
 
-    for data_type in data_types:
+    # making plot
+    for data_type in data_types_set:
         if data_type in result:
-            ax.plot(map(lambda x: x[0], result[data_type]), map(lambda x: x[1], result[data_type]),
-                    label=data_type)
+            print "=== Data type: %s ===" % data_type
 
+            y_data = map(lambda x: x[1], result[data_type])
+
+            if len(y_data) > 0:
+                print "Max: %f" % max(y_data)
+                print "Avg: %f" % float(sum(map(lambda x: x[1], result[data_type])) / float(len(result[data_type])))
+
+                ax.plot(map(lambda x: x[0], result[data_type]), y_data,
+                        label=data_type)
+            else:
+                print "No data"
+
+    # printing and saving plot
     ax.grid(True)
-    ax.format_xdata = mdates.DateFormatter("%H:%M:%S.%f")
+    ax.format_xdata = m_dates.DateFormatter("%H:%M:%S.%f")
     legend = ax.legend(loc='upper left', shadow=False, fontsize='xx-small')
-
     fig.autofmt_xdate()
 
-    #plt.show()
-    save_plot('example')
+    if args.show:
+        plt.show()
+    else:
+        save_plot('example', ext=args.ext)
 
