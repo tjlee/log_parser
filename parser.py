@@ -2,6 +2,7 @@ import os
 import codecs
 import argparse
 from datetime import *
+import xml.etree.ElementTree as xml_element
 
 import matplotlib.pyplot as plt
 import matplotlib.dates as m_dates
@@ -28,6 +29,17 @@ def save_plot(path, ext='png', close=True):
 
     if close:
         plt.close()
+
+
+# need to poarse xml to get
+# <log name="" class="ru.crystals.ERPIntegration.products.plugins.WSGoodsCatalogImport" method="getGoodsCatalogWithTi" root="true"/>
+# class + method
+def get_data_types_from_xml(path):
+    result = []
+    tree = xml_element.parse(path)
+    for child in tree.getroot().findall('log'):
+        result.append(child.get('class') + "." + child.get('method'))
+    return result
 
 
 def parse_perf_data(data, data_types):
@@ -62,16 +74,12 @@ if __name__ == "__main__":
     parser.add_argument("-e", "--ext", default="png",
                         help="Saved plot extension(default=png). Available: png, svg, pdf")
     parser.add_argument("-s", "--show", default=False, help="Show plot in runtime")
-    parser.add_argument("-t", "--types", nargs="+", type=str,
-                        default=["getGoodsCatalogWithTi", "importActionsWithTi", "importCashiersWithTi",
-                                 "getCardsCatalogWithTi",
-                                 "writeObjectsToFile", "insertEvent", "getNewProductsToCash", "processDocument"],
-                        help='''Data types to analyze(default:"getGoodsCatalogWithTi" "importActionsWithTi" "importCashiersWithTi" "getCardsCatalogWithTi" "writeObjectsToFile" "insertEvent" "getNewProductsToCash" "processDocument"
-                        To pass parameters use: -t "one" "two" "four"''')
+    parser.add_argument("-t", "--types", default="./data/transformConfig.xml",
+                        help="Absolute path to transformConfig.xml")
 
     args = parser.parse_args()
 
-    data_types_set = args.types
+    data_types_set = get_data_types_from_xml(args.types)
     data_folder = args.data
 
     result = {}

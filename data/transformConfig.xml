@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<loglist>
+    <defaultLogPackage>ru.crystals.speedlog</defaultLogPackage>
+
+    <!-- По заявкам тестировщиков -->
+    <log name="Импорт товаров" class="ru.crystals.ERPIntegration.products.plugins.WSGoodsCatalogImport" method="getGoodsCatalogWithTi" root="true"/>
+    <log name="Импорт акций" class="ru.crystals.ERPIntegration.discounts.ws.AdvertisingActionsImport" method="importActionsWithTi" root="true"/>
+    <log name="Импорт кассиров" class="ru.crystals.ERPIntegration.cashiers.ws.CashiersImport" method="importCashiersWithTi" root="true"/>
+    <log name="Импорт карт" class="ru.crystals.ERPIntegration.cards.plugins.importing.WSCardsCatalogImport" method="getCardsCatalogWithTi" root="true"/>
+    <log name="Создание задания транспорта товаров на кассы" class="ru.crystals.setretailx.products.transport.sending.MessageSender" method="writeObjectsToFile" root="true"/>
+    <log name="Создание задания транспорта товаров на кассы fast" class="ru.crystals.setretailx.products.transport.sending.MessageSender" method="writeObjectsToFileFast" root="true"/>
+    <log name="Сохранения задания PGQ" class="ru.crystals.transport.PGQManagerImpl" method="insertEvent" root="false"/>
+    <log name="Запрос новых товаров кассой" class="ru.crystals.setretailx.products.ProductsManagerFileTransferRemoteBean" method="getNewProductsToCash" root="true"/>
+    <log name="Процессинг документов" class="ru.crystals.operday.process.documents.DocumentManager" method="processDocument" root="true"/>
+
+
+    <!-- импорт товаров из ERPI -->
+<!--    <log class="ru.crystals.ERPIntegration.products.plugins.WSGoodsCatalogImport" method="processPackage" root="true"/>
+    <log class="ru.crystals.ERPIntegration.products.plugins.WSGoodsCatalogImport" method="storeXMLDataToDb" root="false"/>
+    <log class="ru.crystals.ERPIntegration.products.plugins.WSGoodsCatalogImport" method="processCatalog" root="false"/>-->
+    <!-- импорт товаров - внутренний процесс -->
+<!--    <log class="ru.crystals.setretailx.products.transport.listening.ErpCatalogsImporter" method="processGoodsCatalogCentrum" root="true"/>
+    <log class="ru.crystals.setretailx.catalog.goods.processor.ErpCatalogsImporter" method="getTransientCatalogPrices" root="true"/>
+    <log class="ru.crystals.setretailx.catalog.goods.processor.ErpCatajboss/standalone/log/logsImporter" method="getTransientCatalog" root="true"/>-->
+
+    <!-- импорт карт из ERPI -->
+    <!--<log class="ru.crystals.ERPIntegration.cards.plugins.importing.webservice.WSCardsCatalogImport" method="createObjForSending" root="true"/>-->
+    <!-- импорт карт - внутренний процесс -->
+<!--    <log class="ru.crystals.cards.transport.listening.CardsCatalogListener" method="processMessage" root="true"/>
+    <log class="ru.crystals.cards.transport.processing.CardsCatalogSaver" method="storeCardsCatalog" root="false"/>
+    <log class="ru.crystals.cards.transport.processing.CardsCatalogSaver" method="processCardTypes" root="false"/>
+    <log class="ru.crystals.cards.transport.processing.CardsCatalogSaver" method="processCards" root="false"/>
+    <log class="ru.crystals.cards.transport.processing.CardsCatalogSaver" method="processBonusAccount" root="false"/>-->
+
+    <!-- импорт кассиров из ERPI -->
+    <!--<log class="ru.crystals.ERPIntegration.cashiers.plugins.imp.CashiersImportService" method="importCashiers" root="true"/>-->
+    <!-- импорт кассиров - внутренний процесс -->
+    <!--<log class="ru.crystals.setretailx.cashiers.transport.listening.CashiersFromErpListener" method="onTimeout" root="true"/>-->
+</loglist>
