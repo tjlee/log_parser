@@ -1,6 +1,7 @@
 import os
 import codecs
 import argparse
+import statistics
 from datetime import *
 import xml.etree.ElementTree as xml_element
 
@@ -58,7 +59,7 @@ def parse_perf_data(data, data_types):
                         result_collection[data_type] = []
 
                     # getting log time
-                    current_time = datetime.strptime(chunks[0] + " " + chunks[1], "%d.%m %H:%M:%S,%f")
+                    current_time = datetime.strptime("2016."+chunks[0] + " " + chunks[1], "%Y.%d.%m %H:%M:%S,%f")
                     # getting number from Time:XXXXX
                     total_time = int(chunks[7][5:])
 
@@ -105,7 +106,9 @@ if __name__ == "__main__":
 
             if len(y_data) > 0:
                 print "Max: %f" % max(y_data)
-                print "Avg: %f" % float(sum(map(lambda x: x[1], result[data_type])) / float(len(result[data_type])))
+                print "Avg %f" % statistics.mean(y_data)
+                print "Median %f" % statistics.median(y_data)
+                print "50 percentile %f" % statistics.median_grouped(y_data)
 
                 ax.plot(map(lambda x: x[0], result[data_type]), y_data,
                         label=data_type)
